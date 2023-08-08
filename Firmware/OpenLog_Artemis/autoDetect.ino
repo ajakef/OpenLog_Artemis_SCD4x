@@ -195,7 +195,12 @@ bool addDevice(deviceType_e deviceType, uint8_t address, uint8_t muxAddress, uin
         temp->configPtr = new struct_SCD30;
       }
       break;
-    case DEVICE_PHT_MS8607:
+    case DEVICE_CO2_SCD4x:
+      {
+        temp->classPtr = new SCD4x;
+        temp->configPtr = new struct_SCD4x;
+      }
+      break;    case DEVICE_PHT_MS8607:
       {
         temp->classPtr = new MS8607;
         temp->configPtr = new struct_MS8607;
@@ -453,6 +458,22 @@ bool beginQwiicDevices()
           struct_SCD30 *nodeSetting = (struct_SCD30 *)temp->configPtr; //Create a local pointer that points to same spot as node does
           if (nodeSetting->powerOnDelayMillis > qwiicPowerOnDelayMillis) qwiicPowerOnDelayMillis = nodeSetting->powerOnDelayMillis; // Increase qwiicPowerOnDelayMillis if required
           numberOfSCD30s++; // Keep track of how many SCD30s we begin
+          // Delay before starting the second and subsequent SCD30s to try and stagger the measurements and the peak current draw
+          if (numberOfSCD30s >= 2)
+          {
+            printDebug(F("beginQwiicDevices: found more than one SCD30. Delaying for 375ms to stagger the peak current draw...\r\n"));
+            delay(375);
+          }
+          if(settings.printDebugMessages == true) tempDevice->enableDebugging(); // Enable debug messages if required
+          temp->online = tempDevice->begin(qwiic); //Wire port
+        }
+        break;
+      case DEVICE_CO2_SCD4x:
+        {
+          SCD4x *tempDevice = (SCD4x *)temp->classPtr;
+          struct_SCD4x *nodeSetting = (struct_SCD4x *)temp->configPtr; //Create a local pointer that points to same spot as node does
+          if (nodeSetting->powerOnDelayMillis > qwiicPowerOnDelayMillis) qwiicPowerOnDelayMillis = nodeSetting->powerOnDelayMillis; // Increase qwiicPowerOnDelayMillis if required
+          numberOfSCD30s++; // Keep track of how many SCD30s we begin (JFA 2023-08-08: this is ok to leave as SCD30)
           // Delay before starting the second and subsequent SCD30s to try and stagger the measurements and the peak current draw
           if (numberOfSCD30s >= 2)
           {
@@ -797,7 +818,20 @@ void configureDevice(node * temp)
         //sensor->setTemperatureOffset(sensorSetting->temperatureOffset);
       }
       break;
-    case DEVICE_PHT_MS8607:
+    case DEVICE_CO2_SCD4x:
+      {
+        SCD4x *sensor = (SCD4x *)temp->classPtr;
+        struct_SCD4x *sensorSetting = (struct_SCD4x *)temp->configPtr;
+
+        //sensor->setMeasurementInterval(sensorSetting->measurementInterval);
+        sensor->startPeriodicMeasurement();
+        //sensor->setAltitudeCompensation(sensorSetting->altitudeCompensation);
+        sensor->setSensorAltitude(sensorSetting->altitudeCompensation, 0);
+        sensor->setAmbientPressure(sensorSetting->ambientPressure);
+        //sensor->setTemperatureOffset(sensorSetting->temperatureOffset);
+      }
+      break;
+case DEVICE_PHT_MS8607:
       {
         MS8607 *sensor = (MS8607 *)temp->classPtr;
         struct_MS8607 *sensorSetting = (struct_MS8607 *)temp->configPtr;
@@ -1053,6 +1087,9 @@ FunctionPointer getConfigFunctionPtr(uint8_t nodeNumber)
     case DEVICE_CO2_SCD30:
       ptr = (FunctionPointer)menuConfigure_SCD30;
       break;
+    case DEVICE_CO2_SCD4x:
+      ptr = (FunctionPointer)menuConfigure_SCD4x;
+      break;
     case DEVICE_PHT_MS8607:
       ptr = (FunctionPointer)menuConfigure_MS8607;
       break;
@@ -1249,6 +1286,7 @@ void swap(struct node * a, struct node * b)
 #define ADR_LPS25HB 0x5D //Alternates: 0x5C
 #define ADR_VCNL4040 0x60
 #define ADR_SCD30 0x61
+#define ADR_SCD4x 0x62
 #define ADR_MCP9600 0x60 //0x60 to 0x67
 #define ADR_ISM330DHCX 0x6A //Alternate: 0x6B
 #define ADR_QWIIC_BUTTON 0x6F //But can be any address... Limit the range to 0x68-0x6F
@@ -1475,6 +1513,21 @@ deviceType_e testDevice(uint8_t i2cAddress, uint8_t muxAddress, uint8_t portNumb
       }
       break;
     case 0x62:
+      {
+        //Always do the MCP9600 first. It's fussy...
+        //Confidence: High - Checks 8bit ID
+        MCP9600 sensor;
+        if (sensor.begin(i2cAddress, qwiic) == true) //Address, Wire port
+          return (DEVICE_TEMPERATURE_MCP9600);
+
+        //Confidence: High - begin now checks FW Ver CRC
+        SCD4x sensor1;
+        if(settings.printDebugMessages == true) sensor1.enableDebugging(); // Enable debug messages if required
+        // Set measBegin to false. beginQwiicDevices will call begin with measBegin set true.
+        if (sensor1.begin(qwiic, true, false) == true) //Wire port, autoCalibrate, measBegin
+          return (DEVICE_CO2_SCD4x);
+      }
+      break;
     case 0x63:
     case 0x64:
     case 0x65:
@@ -1817,6 +1870,9 @@ const char* getDeviceName(deviceType_e deviceNumber)
     case DEVICE_CO2_SCD30:
       return "CO2-SCD30";
       break;
+    case DEVICE_CO2_SCD4x:
+      return "CO2-SCD4x";
+      break;    
     case DEVICE_PHT_MS8607:
       return "PHT-MS8607";
       break;

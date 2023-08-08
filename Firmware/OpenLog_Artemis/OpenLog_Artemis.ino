@@ -229,7 +229,7 @@ TwoWire qwiic(PIN_QWIIC_SDA,PIN_QWIIC_SCL); //Will use pads 8/9
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #include <SPI.h>
 
-#include <SdFat.h> //SdFat by Bill Greiman: http://librarymanager/All#SdFat_exFAT
+#include "SdFat.h" //SdFat by Bill Greiman: http://librarymanager/All#SdFat_exFAT
 
 #define SD_FAT_TYPE 3 // SD_FAT_TYPE = 0 for SdFat/File, 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
 #define SD_CONFIG SdSpiConfig(PIN_MICROSD_CHIP_SELECT, SHARED_SPI, SD_SCK_MHZ(24)) // 24MHz
@@ -288,9 +288,43 @@ icm_20948_DMP_data_t dmpData; // Global storage for the DMP data - extracted fro
 
 //Header files for all compatible Qwiic sensors
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/*
+#include "libraries/SparkFun_I2C_Mux_Arduino_Library/src/SparkFun_I2C_Mux_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_I2C_Mux
+#include "libraries/SparkFun_CCS811_Arduino_Library/src/SparkFunCCS811.h" //Click here to get the library: http://librarymanager/All#SparkFun_CCS811
+//#include "libraries/SparkFun_VL53L1X_4m_Laser_Distance_Sensor/src/SparkFun_VL53L1X.h" //Click here to get the library: http://librarymanager/All#SparkFun_VL53L1X
+#include "SparkFun_VL53L1X.h" //Click here to get the library: http://librarymanager/All#SparkFun_VL53L1X
+#include "libraries/SparkFun_BME280/src/SparkFunBME280.h" //Click here to get the library: http://librarymanager/All#SparkFun_BME280
+#include "libraries/SparkFun_LPS25HB_Pressure_Sensor_Library/src/SparkFun_LPS25HB_Arduino_Library.h"  //Click here to get the library: http://librarymanager/All#SparkFun_LPS25HB
+#include "libraries/SparkFun_VEML6075_Arduino_Library/src/SparkFun_VEML6075_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_VEML6075
+#include "libraries/SparkFun_PHT_MS8607_Arduino_Library/src/SparkFun_PHT_MS8607_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_PHT_MS8607
+#include "libraries/SparkFun_MCP9600_Thermocouple_Library/src/SparkFun_MCP9600.h" //Click here to get the library: http://librarymanager/All#SparkFun_MCP9600
+#include "libraries/SparkFun_SGP30_Arduino_Library/src/SparkFun_SGP30_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_SGP30
+#include "libraries/SparkFun_VCNL4040_Proximity_Sensor_Library/src/SparkFun_VCNL4040_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_VCNL4040
+#include "libraries/SparkFun_MS5637_Barometric_Pressure_Library/src/SparkFun_MS5637_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_MS5637
+#include "libraries/SparkFun_High_Precision_Temperature_Sensor_TMP117_Qwiic/src/SparkFun_TMP117.h" //Click here to get the library: http://librarymanager/All#SparkFun_TMP117
+#include "libraries/SparkFun_u-blox_GNSS_Arduino_Library/src/SparkFun_u-blox_GNSS_Arduino_Library.h" //http://librarymanager/All#SparkFun_u-blox_GNSS
+#include "libraries/SparkFun_Qwiic_Scale_NAU7802_Arduino_Library/src/SparkFun_Qwiic_Scale_NAU7802_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_NAU7802
+#include "libraries/SparkFun_SCD30_Arduino_Library/src/SparkFun_SCD30_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_SCD30
+#include "libraries/SparkFun_Qwiic_Humidity_AHT20/src/SparkFun_Qwiic_Humidity_AHT20.h" //Click here to get the library: http://librarymanager/All#Qwiic_Humidity_AHT20 by SparkFun
+#include "libraries/SparkFun_SHTC3_Humidity_and_Temperature_Sensor_Library/src/SparkFun_SHTC3.h" // Click here to get the library: http://librarymanager/All#SparkFun_SHTC3
+#include "libraries/SparkFun_ADS122C04_ADC_Arduino_Library/src/SparkFun_ADS122C04_ADC_Arduino_Library.h" // Click here to get the library: http://librarymanager/All#SparkFun_ADS122C04
+#include "libraries/SparkFun_MicroPressure_Library/src/SparkFun_MicroPressure.h" // Click here to get the library: http://librarymanager/All#SparkFun_MicroPressure
+#include "libraries/SparkFun_Particle_Sensor_Panasonic_SN-GCJA5/src/SparkFun_Particle_Sensor_SN-GCJA5_Arduino_Library.h" // Click here to get the library: http://librarymanager/All#SparkFun_Particle_Sensor_SN-GCJA5
+#include "libraries/SparkFun_SGP40_Arduino_Library/src/SparkFun_SGP40_Arduino_Library.h" // Click here to get the library: http://librarymanager/All#SparkFun_SGP40
+#include "libraries/SparkFun_SDP3x_Arduino_Library/src/SparkFun_SDP3x_Arduino_Library.h" // Click here to get the library: http://librarymanager/All#SparkFun_SDP3x
+#include "libraries/BlueRobotics_MS5837_Library-master/src/MS5837.h" // Click here to download the library: https://github.com/sparkfunX/BlueRobotics_MS5837_Library
+#include "libraries/SparkFun_Qwiic_Button_and_Qwiic_Switch_Library/src/SparkFun_Qwiic_Button.h" // Click here to get the library: http://librarymanager/All#SparkFun_Qwiic_Button_Switch
+#include "libraries/SparkFun_Bio_Sensor_Hub_Library/src/SparkFun_Bio_Sensor_Hub_Library.h" // Click here to get the library: http://librarymanager/All#SparkFun_Bio_Sensor
+#include "libraries/SparkFun_6DoF_ISM330DHCX/src/SparkFun_ISM330DHCX.h" // Click here to get the library: http://librarymanager/All#SparkFun_6DoF_ISM330DHCX
+#include "libraries/SparkFun_MMC5983MA_Magnetometer_Arduino_Library/src/SparkFun_MMC5983MA_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_MMC5983MA
+#include "libraries/SparkFun_ADS1015_Arduino_Library/src/SparkFun_ADS1015_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_ADS1015
+#include "libraries/SparkFun_KX13X_Arduino_Library/src/SparkFun_KX13X.h" //Click here to get the library: http://librarymanager/All#SparkFun_KX13X
+*/
+
 
 #include "SparkFun_I2C_Mux_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_I2C_Mux
 #include "SparkFunCCS811.h" //Click here to get the library: http://librarymanager/All#SparkFun_CCS811
+//#include "libraries/SparkFun_VL53L1X_4m_Laser_Distance_Sensor/src/SparkFun_VL53L1X.h" //Click here to get the library: http://librarymanager/All#SparkFun_VL53L1X
 #include "SparkFun_VL53L1X.h" //Click here to get the library: http://librarymanager/All#SparkFun_VL53L1X
 #include "SparkFunBME280.h" //Click here to get the library: http://librarymanager/All#SparkFun_BME280
 #include "SparkFun_LPS25HB_Arduino_Library.h"  //Click here to get the library: http://librarymanager/All#SparkFun_LPS25HB
@@ -318,6 +352,7 @@ icm_20948_DMP_data_t dmpData; // Global storage for the DMP data - extracted fro
 #include "SparkFun_MMC5983MA_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_MMC5983MA
 #include "SparkFun_ADS1015_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_ADS1015
 #include "SparkFun_KX13X.h" //Click here to get the library: http://librarymanager/All#SparkFun_KX13X
+#include "SparkFun_SCD4x_Arduino_Library.h" // http://librarymanager/All#SparkFun_SCD4x
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

@@ -632,7 +632,33 @@ void gatherDeviceValues(char * sdOutputData, size_t lenData)
             }
           }
           break;
-        case DEVICE_PHT_MS8607:
+        case DEVICE_CO2_SCD4x:
+          {
+            SCD4x *nodeDevice = (SCD4x *)temp->classPtr;
+            struct_SCD4x *nodeSetting = (struct_SCD4x *)temp->configPtr;
+            if (nodeSetting->log == true)
+            {
+              if (nodeSetting->logCO2)
+              {
+                sprintf(tempData, "%d,", nodeDevice->getCO2());
+                strlcat(sdOutputData, tempData, lenData);
+              }
+              if (nodeSetting->logHumidity)
+              {
+                olaftoa(nodeDevice->getHumidity(), tempData1, 2, sizeof(tempData) / sizeof(char));
+                sprintf(tempData, "%s,", tempData1);
+                strlcat(sdOutputData, tempData, lenData);
+              }
+              if (nodeSetting->logTemperature)
+              {
+                olaftoa(nodeDevice->getTemperature(), tempData1, 2, sizeof(tempData) / sizeof(char));
+                sprintf(tempData, "%s,", tempData1);
+                strlcat(sdOutputData, tempData, lenData);
+              }
+            }
+          }
+          break;        
+          case DEVICE_PHT_MS8607:
           {
             MS8607 *nodeDevice = (MS8607 *)temp->classPtr;
             struct_MS8607 *nodeSetting = (struct_MS8607 *)temp->configPtr;
@@ -1525,6 +1551,20 @@ static void getHelperText(char* helperText, size_t lenText)
         case DEVICE_CO2_SCD30:
           {
             struct_SCD30 *nodeSetting = (struct_SCD30 *)temp->configPtr;
+            if (nodeSetting->log)
+            {
+              if (nodeSetting->logCO2)
+                strlcat(helperText, "co2_ppm,", lenText);
+              if (nodeSetting->logHumidity)
+                strlcat(helperText, "humidity_%,", lenText);
+              if (nodeSetting->logTemperature)
+                strlcat(helperText, "degC,", lenText);
+            }
+          }
+          break;
+        case DEVICE_CO2_SCD4x:
+          {
+            struct_SCD4x *nodeSetting = (struct_SCD4x *)temp->configPtr;
             if (nodeSetting->log)
             {
               if (nodeSetting->logCO2)

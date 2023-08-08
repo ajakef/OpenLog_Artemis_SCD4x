@@ -321,6 +321,9 @@ void menuAttachedDevices()
           case DEVICE_CO2_SCD30:
             SerialPrintf3("%s SCD30 CO2 Sensor %s\r\n", strDeviceMenu, strAddress);
             break;
+          case DEVICE_CO2_SCD4x:
+            SerialPrintf3("%s SCD4x CO2 Sensor %s\r\n", strDeviceMenu, strAddress);
+            break;
           case DEVICE_PHT_MS8607:
             SerialPrintf3("%s MS8607 Pressure/Humidity/Temp (PHT) Sensor %s\r\n", strDeviceMenu, strAddress);
             break;
@@ -1682,6 +1685,132 @@ void menuConfigure_SCD30(void *configPtr)
   }
 
 }
+
+void menuConfigure_SCD4x(void *configPtr)
+{
+  //Search the list of nodes looking for the one with matching config pointer
+  node *temp = head;
+  while (temp != NULL)
+  {
+    if (temp->configPtr == configPtr)
+      break;
+
+    temp = temp->next;
+  }
+  if (temp == NULL)
+  {
+    SerialPrintln(F("SCD4x node not found. Returning."));
+    for (int i = 0; i < 1000; i++)
+    {
+      checkBattery();
+      delay(1);
+    }
+    return;
+  }
+
+  SCD4x *sensor = (SCD4x *)temp->classPtr;
+  struct_SCD4x *sensorSetting = (struct_SCD4x*)configPtr;
+
+  while (1)
+  {
+    SerialPrintln(F(""));
+    SerialPrintln(F("Menu: Configure SCD4x CO2 and Humidity Sensor"));
+
+    SerialPrint(F("1) Sensor Logging: "));
+    if (sensorSetting->log == true) SerialPrintln(F("Enabled"));
+    else SerialPrintln(F("Disabled"));
+
+    if (sensorSetting->log == true)
+    {
+      SerialPrint(F("2) Log CO2: "));
+      if (sensorSetting->logCO2 == true) SerialPrintln(F("Enabled"));
+      else SerialPrintln(F("Disabled"));
+
+      SerialPrint(F("3) Log Humidity: "));
+      if (sensorSetting->logHumidity == true) SerialPrintln(F("Enabled"));
+      else SerialPrintln(F("Disabled"));
+
+      SerialPrint(F("4) Log Temperature: "));
+      if (sensorSetting->logTemperature == true) SerialPrintln(F("Enabled"));
+      else SerialPrintln(F("Disabled"));
+
+      SerialPrintf2("5) Set Measurement Interval: %d\r\n", sensorSetting->measurementInterval);
+      SerialPrintf2("6) Set Altitude Compensation: %d\r\n", sensorSetting->altitudeCompensation);
+      SerialPrintf2("7) Set Ambient Pressure: %d\r\n", sensorSetting->ambientPressure);
+      SerialPrintf2("8) Set Temperature Offset: %d\r\n", sensorSetting->temperatureOffset);
+    }
+    SerialPrintln(F("x) Exit"));
+
+    byte incoming = getByteChoice(menuTimeout); //Timeout after x seconds
+
+    if (incoming == '1')
+      sensorSetting->log ^= 1;
+    else if (sensorSetting->log == true)
+    {
+      if (incoming == '2')
+        sensorSetting->logCO2 ^= 1;
+      else if (incoming == '3')
+        sensorSetting->logHumidity ^= 1;
+      else if (incoming == '4')
+        sensorSetting->logTemperature ^= 1;
+      else if (incoming == '5')
+      {
+        SerialPrint(F("Enter the seconds between measurements (2 to 1800): "));
+        int amt = getNumber(menuTimeout); //x second timeout
+        if (amt < 2 || amt > 1800)
+          SerialPrintln(F("Error: Out of range"));
+        else
+          sensorSetting->measurementInterval = amt;
+      }
+      else if (incoming == '6')
+      {
+        SerialPrint(F("Enter the Altitude Compensation in meters (0 to 10000): "));
+        int amt = getNumber(menuTimeout); //x second timeout
+        if (amt < 0 || amt > 10000)
+          SerialPrintln(F("Error: Out of range"));
+        else
+          sensorSetting->altitudeCompensation = amt;
+      }
+      else if (incoming == '7')
+      {
+        SerialPrint(F("Enter Ambient Pressure in mBar (700 to 1200): "));
+        int amt = getNumber(menuTimeout); //x second timeout
+        if (amt < 700 || amt > 1200)
+          SerialPrintln(F("Error: Out of range"));
+        else
+          sensorSetting->ambientPressure = amt;
+      }
+      else if (incoming == '8')
+      {
+        SerialPrint(F("The current temperature offset read from the sensor is: "));
+        Serial.print(sensor->getTemperatureOffset(), 2);
+        if (settings.useTxRxPinsForTerminal == true)
+          Serial1.print(sensor->getTemperatureOffset(), 2);
+        SerialPrintln(F("C"));
+        SerialPrint(F("Enter new temperature offset in C (-50 to 50): "));
+        int amt = getNumber(menuTimeout); //x second timeout
+        if (amt < -50 || amt > 50)
+          sensorSetting->temperatureOffset = amt;
+        else
+          SerialPrintln(F("Error: Out of range"));
+      }
+      else if (incoming == 'x')
+        break;
+      else if (incoming == STATUS_GETBYTE_TIMEOUT)
+        break;
+      else
+        printUnknown(incoming);
+    }
+    else if (incoming == 'x')
+      break;
+    else if (incoming == STATUS_GETBYTE_TIMEOUT)
+      break;
+    else
+      printUnknown(incoming);
+  }
+
+}
+
 
 
 void menuConfigure_MS8607(void *configPtr)

@@ -644,6 +644,19 @@ void recordDeviceSettingsToFile()
             settingsFile.println((String)base + "temperatureOffset=" + nodeSetting->temperatureOffset);
           }
           break;
+        case DEVICE_CO2_SCD4x:
+          {
+            struct_SCD4x *nodeSetting = (struct_SCD4x *)temp->configPtr;
+            settingsFile.println((String)base + "log=" + nodeSetting->log);
+            settingsFile.println((String)base + "logCO2=" + nodeSetting->logCO2);
+            settingsFile.println((String)base + "logHumidity=" + nodeSetting->logHumidity);
+            settingsFile.println((String)base + "logTemperature=" + nodeSetting->logTemperature);
+            settingsFile.println((String)base + "measurementInterval=" + nodeSetting->measurementInterval);
+            settingsFile.println((String)base + "altitudeCompensation=" + nodeSetting->altitudeCompensation);
+            settingsFile.println((String)base + "ambientPressure=" + nodeSetting->ambientPressure);
+            settingsFile.println((String)base + "temperatureOffset=" + nodeSetting->temperatureOffset);
+          }
+          break;        
         case DEVICE_PHT_MS8607:
           {
             struct_MS8607 *nodeSetting = (struct_MS8607 *)temp->configPtr;
@@ -1203,6 +1216,29 @@ bool parseDeviceLine(char* str) {
       case DEVICE_CO2_SCD30:
         {
           struct_SCD30 *nodeSetting = (struct_SCD30 *)deviceConfigPtr; //Create a local pointer that points to same spot as node does
+          if (strcmp(deviceSettingName, "log") == 0)
+            nodeSetting->log = d;
+          else if (strcmp(deviceSettingName, "logCO2") == 0)
+            nodeSetting->logCO2 = d;
+          else if (strcmp(deviceSettingName, "logHumidity") == 0)
+            nodeSetting->logHumidity = d;
+          else if (strcmp(deviceSettingName, "logTemperature") == 0)
+            nodeSetting->logTemperature = d;
+          else if (strcmp(deviceSettingName, "measurementInterval") == 0)
+            nodeSetting->measurementInterval = d;
+          else if (strcmp(deviceSettingName, "altitudeCompensation") == 0)
+            nodeSetting->altitudeCompensation = d;
+          else if (strcmp(deviceSettingName, "ambientPressure") == 0)
+            nodeSetting->ambientPressure = d;
+          else if (strcmp(deviceSettingName, "temperatureOffset") == 0)
+            nodeSetting->temperatureOffset = d;
+          else
+            SerialPrintf2("Unknown device setting: %s\r\n", deviceSettingName);
+        }
+        break;
+      case DEVICE_CO2_SCD4x:
+        {
+          struct_SCD4x *nodeSetting = (struct_SCD4x *)deviceConfigPtr; //Create a local pointer that points to same spot as node does
           if (strcmp(deviceSettingName, "log") == 0)
             nodeSetting->log = d;
           else if (strcmp(deviceSettingName, "logCO2") == 0)

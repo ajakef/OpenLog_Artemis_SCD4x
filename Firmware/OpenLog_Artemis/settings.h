@@ -16,6 +16,7 @@ typedef enum
   DEVICE_VOC_CCS811,
   DEVICE_VOC_SGP30,
   DEVICE_CO2_SCD30,
+  DEVICE_CO2_SCD4x,
   DEVICE_PHT_MS8607,
   DEVICE_TEMPERATURE_MCP9600,
   DEVICE_HUMIDITY_AHT20,
@@ -207,6 +208,18 @@ struct struct_MS5637 {
 };
 
 struct struct_SCD30 {
+  bool log = true;
+  bool logCO2 = true;
+  bool logHumidity = true;
+  bool logTemperature = true;
+  int measurementInterval = 2; //2 seconds
+  int altitudeCompensation = 0; //0 m above sea level
+  int ambientPressure = 1000; //mBar STP (Toto, I have a feeling we're not in Boulder anymore)
+  int temperatureOffset = 0; //C - Be careful not to overwrite the value on the sensor
+  unsigned long powerOnDelayMillis = 5000; // Wait for at least this many millis before communicating with this device
+};
+
+struct struct_SCD4x {
   bool log = true;
   bool logCO2 = true;
   bool logHumidity = true;
